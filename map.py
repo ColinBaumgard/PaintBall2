@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 
 
 class Map:
-    def __init__(self):
-        self.size = (10, 10)
+    def __init__(self, size=(700, 700)):
+        self.size = size
         self.polygone = self.generer()
 
-    def generer(self, n=17, r_min=1, r_max=3):
+    def generer(self, n=17, r_min=100, r_max=300):
         '''
         génération du polygone à découvrir
         :param n: nombre de points
@@ -29,9 +29,9 @@ class Map:
             points[0, i] = x
             points[1, i] = y
 
-        print(points)
-        plt.plot(points[0, :], points[1, :])
-        plt.show()
+        #print(points)
+        #plt.plot(points[0, :], points[1, :])
+        #plt.show()
 
         return points
 

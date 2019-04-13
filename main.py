@@ -2,6 +2,8 @@ import model
 import view
 import controller
 
+import time
+
 
 class Main:
     def __init__(self):
@@ -15,7 +17,9 @@ class Main:
         self.controller = controller.Controller()
 
     def run(self):
-        pass
+        self.view.print(self.model)
+
+
 
 
 if __name__ == '__main__':

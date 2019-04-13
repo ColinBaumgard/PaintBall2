@@ -1,15 +1,28 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:\Users\xb\PycharmProjects\PaintBall2\main\mainwindow.ui'
-#
-# Created by: PyQt5 UI code generator 5.12.1
-#
-# WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+import model
+import sys
 
 class Ui_MainWindow(object):
+
+    def __init__(self):
+        self.model = model.Model()
+
+        super().__init__()
+
+    def afficher_polygone(self):
+        self.polygone = QtGui.QPolygonF()
+        points = self.model.map.polygone
+        n = points.shape[1]
+        for i in range(n):
+            print('x : ', points[0, i], '/ y : ', points[1, i])
+            self.polygone.append(QtCore.QPointF(points[0, i], points[1, i]))
+
+    def mousePressEvent(self, event):
+        print("appui souris")
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(400, 300)
@@ -46,3 +59,11 @@ class Ui_MainWindow(object):
         self.compteur_tir.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:36pt; color:#ffffff;\">0</span></p></body></html>"))
 
 
+
+if __name__ == '__main__':
+    app = QtWidgets.QApplication(sys.argv)
+    principale_ihm = QtWidgets.QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(principale_ihm)
+    principale_ihm.show()
+    sys.exit(app.exec_())
