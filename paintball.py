@@ -18,6 +18,7 @@ class Main(QMainWindow):
         self.size = (700, 700)
         self.model = model.Model(self.size)
         self.r_player = 10
+        self.r_deplacement = 100
 
         self.x_mouse, self.y_mouse = 0, 0
 
@@ -36,11 +37,16 @@ class Main(QMainWindow):
         self.show()
 
     def paintEvent(self, event):
+
+        # etat joueur True = tir, False = deplacement
+        etat = self.model.player.etat
+
+
         # affichage polygone
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(QPen(Qt.black, 2, Qt.SolidLine))
-        painter.setBrush(QBrush(Qt.white, Qt.SolidPattern))
+        #painter.setBrush(QBrush(Qt.white, Qt.SolidPattern))
 
         poly = self.model.map.polygone
         points = [QPoint(poly[0, i], poly[1, i]) for i in range(0, poly.shape[1])]
@@ -53,12 +59,25 @@ class Main(QMainWindow):
         xy = self.model.player.coords
         painter.drawEllipse(QPoint(xy[0], xy[1]), self.r_player, self.r_player)
 
-        # affichage ligne
-        a, b, s = self.pointsToParam()  # on récupère les infos pour avoir une demi-droite ( on prend un pt à l'exterieur, +/- 1000à
-        painter.drawLine(xy[0], xy[1], 1000*s, a*1000*s + b)
+        # affichage ligne si etat = tir = True
+        if etat:
+            a, b, s = self.pointsToParam()  # on récupère les infos pour avoir une demi-droite ( on prend un pt à l'exterieur, +/- 1000à
+            painter.drawLine(xy[0], xy[1], 1000*s, a*1000*s + b)
+
+        # affichage cercle deplacement
+        else:
+            painter.drawEllipse(QPoint(xy[0], xy[1]), self.r_deplacement, self.r_deplacement)
+
 
     def mousePressEvent(self, e):
-        self.model.player.coords = (e.x(), e.y(), 0)
+        etat = self.model.player.etat
+        self.model.player.etat = not etat
+
+        if etat :  # ie si tir
+            pass
+        else:  # ie si deplacement
+            self.model.player.coords = (e.x(), e.y(), 0)
+
         self.update()
 
     def mouseMoveEvent(self, e):

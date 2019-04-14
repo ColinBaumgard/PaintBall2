@@ -12,5 +12,6 @@ class Player:
         self.coords = coords
         self.pseudo = pseudo
         self.compteur_tir = '1'
+        self.etat = True
 
 
