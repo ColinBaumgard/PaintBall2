@@ -8,6 +8,7 @@ class Map:
     def __init__(self, size=(700, 700)):
         self.size = size
         self.polygone = self.generer()
+        self.arretes = []
 
     def generer(self, n=17, r_min=100, r_max=300):
         '''

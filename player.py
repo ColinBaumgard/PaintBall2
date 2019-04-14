@@ -9,9 +9,10 @@ class Player:
         :param pseudo: chaîne de caractère
         '''
 
+        self.vitesse = 100
         self.coords = coords
         self.pseudo = pseudo
         self.compteur_tir = '1'
-        self.etat = True
+        self.etat = 0  # 0  tir, 1 en tir, 2 demande déplacement, 3 en dep
 
 
