@@ -156,6 +156,16 @@ class Main(QMainWindow):
                 alpha += np.pi
             elif s_2 < 0:
                 alpha += 2*np.pi
+        elif dx == 0:
+            if dy < 0:
+                return 3*np.pi/2
+            else:
+                return np.pi/2
+        else:
+            if dx < 0:
+                return np.pi
+            else:
+                return 0
 
         return alpha
 
