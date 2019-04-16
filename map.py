@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 
 
 class Map:
-    def __init__(self, size=(700, 700)):
+    def __init__(self, size=(700, 700), level=10):
         self.size = size
-        self.polygone = self.generer()
+        self.polygone = self.generer(level)
         self.arretes = []
 
     def generer(self, n=17, r_min=100, r_max=300):
