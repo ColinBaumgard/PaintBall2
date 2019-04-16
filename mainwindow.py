@@ -25,6 +25,7 @@ class Main(QMainWindow):
         self.r_player = 10
         self.r_deplacement = 100
         self.fps = 60
+        self.game_over = False
 
         self.tir = (0, 0, (False, 0, 0))  # angle, temps et impacte(bool, (i, j), r_min)
         self.v_tir = 500
@@ -41,6 +42,14 @@ class Main(QMainWindow):
 
         self.initWindow()
 
+        # OPTION DE DEBBUG
+        self.show_polygon = False
+        self.show_impact = False
+        self.show_numbers = False
+
+        # attributs debbug
+        self.pt_col = (0, 0)
+
     def initWindow(self):
 
         self.setMouseTracking(True)
@@ -51,30 +60,41 @@ class Main(QMainWindow):
 
     def paintEvent(self, event):
 
+        # INITIALISATION painter, etat etc
+
         # etat joueur True = tir, False = deplacement
         etat = self.model.player.etat
 
-
-        # affichage polygone
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(QPen(Qt.black, 2, Qt.SolidLine))
 
-        #painter.setBrush(QBrush(Qt.white, Qt.SolidPattern))
-
         poly = self.model.map.polygone
         points = [QPoint(poly[0, i], poly[1, i]) for i in range(0, poly.shape[1])]
-        #points = [QPoint(100, 100), QPoint(200, 100), QPoint(200, 100)]
 
-        for i in range(len(points)):
-            painter.drawText(points[i], str(i))
+        # OPTIONS D'AFFICHAGE
+
+        # affichage polygone
+
+        if self.show_polygon:
+
+            #points = [QPoint(100, 100), QPoint(200, 100), QPoint(200, 100)]
+            Qpoly = QPolygon(points)
+            painter.setPen(QPen(Qt.gray, 2, Qt.SolidLine))
+            painter.drawPolygon(Qpoly)
+            painter.setPen(QPen(Qt.black, 2, Qt.SolidLine))
+
+        if self.show_numbers:
+            for i in range(len(points)):
+                painter.drawText(points[i], str(i))
+
+        if self.show_impact:
+            painter.setPen(QPen(Qt.red, 4, Qt.SolidLine))
+            painter.drawEllipse(QPoint(self.pt_col[0], self.pt_col[1]), 10, 10)
+            painter.setPen(QPen(Qt.black, 2, Qt.SolidLine))
 
 
 
-        Qpoly = QPolygon(points)
-        painter.setPen(QPen(Qt.gray, 2, Qt.SolidLine))
-        painter.drawPolygon(Qpoly)
-        painter.setPen(QPen(Qt.black, 2, Qt.SolidLine))
 
         # affichage arretes découvertes
 
@@ -94,9 +114,18 @@ class Main(QMainWindow):
 
         ###### affichage selon les differents état de jeu #####
 
+        if self.game_over:
+            title_font = QtGui.QFont()
+            title_font.setFamily("Cooper Black")
+            title_font.setPointSize(14)
+
+            self.show_polygon = True
+
+            painter.drawEllipse(QPoint(xy[0], xy[1]), self.r_player, self.r_player)
+            painter.drawText(self.size[0] / 2, self.size[1] / 2, 'GameOver')
 
         # Demande de tir : 0
-        if etat == 0:
+        elif etat == 0:
             self.demande_tir(painter)
 
         # Animation tir
@@ -116,8 +145,6 @@ class Main(QMainWindow):
         # Si il y a eu une erreur...
         else:
             self.model.player.etat = 0
-
-
 
     def mousePressEvent(self, e):
         etat = self.model.player.etat
@@ -139,10 +166,8 @@ class Main(QMainWindow):
 
         self.update()
 
-
     def mouseMoveEvent(self, e):
         self.x_mouse, self.y_mouse = e.x(), e.y()
-
 
     def getAngle(self):
         '''
@@ -217,19 +242,19 @@ class Main(QMainWindow):
                 x, y = xy[0] + r_sup * np.cos(alpha), xy[1] + r_sup * np.sin(alpha)
                 if self.collision.estEntreAetB(C, (poly[0, i], poly[1, i]), (poly[0, j], poly[1, j])):
                     if self.collision.estEntreAetB(C, (xy[0], xy[1]), (x, y)):
-                        print(i, j)
-                        r = np.sqrt((point_coll[0] - xy[0])**2 + (point_coll[1] - xy[1])**2)
+                        r = np.sqrt((C[0] - xy[0])**2 + (C[1] - xy[1])**2)
                         if r < r_min:
                             r_min = r
+                            self.pt_col = C
                             impacte = (i, j)
+
+
 
 
         if impacte != (0, 0):
             return True, impacte, r_min
         else:
             return False, impacte, r_min
-
-
 
     def demande_tir(self, painter):
         xy = self.model.player.coords
@@ -239,7 +264,6 @@ class Main(QMainWindow):
 
         painter.drawEllipse(QPoint(xy[0], xy[1]), self.r_player, self.r_player)
         painter.drawLine(xy[0], xy[1], x, y)
-
 
     def animation_tir(self, painter):
         xy = self.model.player.coords
@@ -256,7 +280,7 @@ class Main(QMainWindow):
         else:
             h = self.lg_tir + r_tir  # hypothenus
             x2, y2 = xy[0] + h * np.cos(alpha), xy[1] + h * np.sin(alpha)
-        if r_tir > r_tir_max:  # quand le tir touche un mur ou dépasse la limite du terrain, on passe à l'etat suivant
+        if r_tir > r_tir_max - self.lg_tir:  # quand le tir touche un mur ou dépasse la limite du terrain, on passe à l'etat suivant
             if impacte[0]:
                 if impacte[1] not in self.model.map.arretes:
                     self.model.map.arretes.append(impacte[1])
@@ -271,9 +295,11 @@ class Main(QMainWindow):
         t = time.time() - t0
         r = self.model.player.vitesse * t
         x0, y0 = xy[0] + r * np.cos(alpha), xy[1] + r * np.sin(alpha)
-        if r > min(distance, self.r_deplacement):
+        if r > min(distance, self.r_deplacement) or self.collision_joueur((x0, y0)):
             self.model.player.coords = (x0, y0, alpha)
             self.model.player.etat = 0
+
+
 
         painter.drawEllipse(QPoint(xy[0], xy[1]), self.r_deplacement, self.r_deplacement)
         painter.drawEllipse(QPoint(x0, y0), self.r_player, self.r_player)
@@ -289,6 +315,26 @@ class Main(QMainWindow):
         painter.drawEllipse(QPoint(xy[0], xy[1]), self.r_player, self.r_player)
         painter.drawLine(xy[0], xy[1], x, y)
         painter.drawEllipse(QPoint(xy[0], xy[1]), self.r_deplacement, self.r_deplacement)
+
+    def collision_joueur(self, J):
+        poly = self.model.map.polygone
+        n = poly.shape[1]
+
+        for i in range(n):
+            j = (i + 1) % n
+            A, B = (poly[0, i], poly[1, i]), (poly[0, j], poly[1, j])
+            a, b = self.collision.pointsToPara(A, B)
+            C = self.collision.distanceDroite(J, (a, b))
+            #print(C)
+            #painter.drawEllipse(QPoint(C[0], C[1]), 10, 10)
+            if self.collision.estEntreAetB(C, A, B):
+                #print('oK')
+                if self.collision.distanceAB(J, C) < self.r_player:
+                    self.game_over = True
+                    print('Game Over')
+                    return True
+
+        return False
 
 
 

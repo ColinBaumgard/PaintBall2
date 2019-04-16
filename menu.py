@@ -42,6 +42,7 @@ class Ui_Menu(QtWidgets.QWidget):
         label_level.setFont(font)
 
         self.level = QtWidgets.QSlider()
+        self.level.setValue(12)
         self.level.setMinimum(3)
         self.level.setMaximum(20)
         self.level.setOrientation(QtCore.Qt.Horizontal)
