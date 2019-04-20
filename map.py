@@ -9,6 +9,7 @@ class Map:
         self.size = size
         self.polygone = self.generer(level)
         self.arretes = []
+        self.taches = [] # [[[Ax, Ay], [Bx, By]], [...], ...]
 
     def generer(self, n=17, r_min=100, r_max=300):
         '''

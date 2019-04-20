@@ -27,11 +27,13 @@ class Main(QMainWindow):
         self.fps = 60
         self.game_over = False
 
-        self.tir = (0, 0, (False, 0, 0))  # angle, temps et impacte(bool, (i, j), r_min)
+        self.tir = (0, 0, (False, (0, 0), 0))  # angle, temps et impacte(bool, (i, j), r_min)
         self.v_tir = 500
         self.lg_tir = 20
         self.r_tir_max = 500
-        self.r_tache = 50
+        self.r_tache = 1000
+        self.v_tache = 600
+        self.t_tache = 0
 
         # style
         self.style_base = QPen(Qt.white, 2, Qt.SolidLine)
@@ -59,6 +61,7 @@ class Main(QMainWindow):
         self.show_polygon = False
         self.show_impact = False
         self.show_numbers = False
+        self.show_taches = True
 
         # attributs debbug
         self.pt_col = (0, 0)
@@ -101,11 +104,10 @@ class Main(QMainWindow):
 
         if self.show_polygon:
 
-            #points = [QPoint(100, 100), QPoint(200, 100), QPoint(200, 100)]
             Qpoly = QPolygon(points)
             painter.setPen(self.style_gris)
             painter.drawPolygon(Qpoly)
-            painter.setPen(self.style_1)
+            painter.setPen(self.style_base)
 
         if self.show_numbers:
             for i in range(len(points)):
@@ -121,13 +123,25 @@ class Main(QMainWindow):
 
         # affichage arretes découvertes
 
-        arretes = self.model.map.arretes
-        for arrete in arretes:
-            A = QPoint(poly[0, arrete[0]], poly[1, arrete[0]])
-            B = QPoint(poly[0, arrete[1]], poly[1, arrete[1]])
 
 
-            painter.drawLine(A, B)
+
+        if self.show_taches:
+            taches = self.model.map.taches
+            for tache in taches:
+                A = QPoint(tache[0][0], tache[0][1])
+                B = QPoint(tache[1][0], tache[1][1])
+
+                painter.drawLine(A, B)
+
+        else:
+            arretes = self.model.map.arretes
+
+            for arrete in arretes:
+                A = QPoint(poly[0, arrete[0]], poly[1, arrete[0]])
+                B = QPoint(poly[0, arrete[1]], poly[1, arrete[1]])
+
+                painter.drawLine(A, B)
 
 
 
@@ -155,6 +169,9 @@ class Main(QMainWindow):
         elif etat == 1:
             self.animation_tir(painter)
 
+        elif etat == 4:
+            self.animation_tache(painter)
+
         # Demande de déplacement
         elif etat == 2:
             self.demande_deplacement(painter)
@@ -162,6 +179,7 @@ class Main(QMainWindow):
         # Animation déplacement
         elif etat == 3:
             self.animation_deplacement(painter)
+
 
 
 
@@ -294,23 +312,33 @@ class Main(QMainWindow):
     def animation_tir(self, painter):
         xy = self.model.player.coords
         alpha, t0, impacte = self.tir  # on récupère les infos pour avoir une demi-droite ( on prend un pt à l'exterieur, +/- 1000à
+
         if impacte[0]:
             r_tir_max = impacte[2]
         else:
             r_tir_max = self.r_tir_max
+
         t = time.time() - t0
         r_tir = t * self.v_tir
         x1, y1 = xy[0] + r_tir * np.cos(alpha), xy[1] + r_tir * np.sin(alpha)
+
         if r_tir < self.lg_tir:
             x2, y2 = xy[0], xy[1]
         else:
             h = self.lg_tir + r_tir  # hypothenus
             x2, y2 = xy[0] + h * np.cos(alpha), xy[1] + h * np.sin(alpha)
+
         if r_tir > r_tir_max - self.lg_tir:  # quand le tir touche un mur ou dépasse la limite du terrain, on passe à l'etat suivant
+
             if impacte[0]:
                 if impacte[1] not in self.model.map.arretes:
                     self.model.map.arretes.append(impacte[1])
-            self.model.player.etat = 2
+                self.t_tache = time.time()
+                self.model.player.etat = 4
+            else:
+                self.model.player.etat = 2
+
+
 
         painter.drawEllipse(QPoint(xy[0], xy[1]), self.r_player, self.r_player)
         painter.drawLine(x1, y1, x2, y2)
@@ -324,9 +352,6 @@ class Main(QMainWindow):
         if r > min(distance, self.r_deplacement) or self.collision_joueur((x0, y0)):
             self.model.player.coords = (x0, y0, alpha)
             self.model.player.etat = 0
-
-
-
 
         painter.drawEllipse(QPoint(xy[0], xy[1]), self.r_deplacement, self.r_deplacement)
         painter.drawEllipse(QPoint(x0, y0), self.r_player, self.r_player)
@@ -362,6 +387,53 @@ class Main(QMainWindow):
                     return True
 
         return False
+
+    def animation_tache(self, painter):
+        xy = self.model.player.coords
+        t = time.time() - self.t_tache
+        r = self.v_tache*t
+        A, B = self.points_tache(r)
+
+        if r > self.r_tache:
+            self.model.map.taches.append((A, B))
+            self.model.player.etat = 2
+        else:
+            painter.drawLine(A[0], A[1], B[0], B[1])
+
+        painter.drawEllipse(QPoint(xy[0], xy[1]), self.r_player, self.r_player)
+
+
+
+
+
+
+
+    def points_tache(self, r):
+        '''
+        Retourne les extremitées de la tâche
+        :param r: rayon de la tache
+        :return: E, F les extremitées
+        '''
+        C = self.pt_col
+        poly = self.model.map.polygone
+        i, j = self.tir[2][1]
+        A, B = (poly[0, i], poly[1, i]), (poly[0, j], poly[1, j])
+        a, b = self.collision.pointsToPara(A, B)
+
+        E, F = self.collision.intersectionCercleDroite(C, (a, b), r)
+
+        if not self.collision.estEntreAetB(E, A, B):
+            if self.collision.estEntreAetB(A, E, C):
+                E = A
+            else:
+                E = B
+        if not self.collision.estEntreAetB(F, A, B):
+            if self.collision.estEntreAetB(A, F, C):
+                F = A
+            else:
+                F = B
+
+        return E, F
 
 
 

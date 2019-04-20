@@ -26,5 +26,5 @@ if __name__ == '__main__':
     pb = PaintBall()
     pb.menu()
 
-    app.exec()
+    sys.exit(app.exec())
 

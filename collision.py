@@ -65,9 +65,26 @@ class Collision:
 
         return x2, y2
 
+    def intersectionCercleDroite(self, C, d, r):
+        '''
+        Donne les points d'intersection d'une droite et d'un cercle. Retourne une liste de points
+        :param C: centre du cercle (x, y)
+        :param d: paramètres droite (a, b)
+        :param r: rayon du cercle
+        :return: A, B = (xA, yA), (xB, yB)
+        '''
 
+        x0, y0 = C
+        a, b = d
+        points = []
 
+        X = np.roots([1, -2*x0, x0**2 - r/(1 + a**2)])
 
+        for x in X:
+            y = a*x + b
+            points.append((x, y))
+
+        return points
 
 
 if __name__ == '__main__':
