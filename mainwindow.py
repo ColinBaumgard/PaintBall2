@@ -38,7 +38,7 @@ class Main(QMainWindow):
         # style
         self.style_base = QPen(Qt.white, 2, Qt.SolidLine)
         self.style_gris = QPen(Qt.gray, 2, Qt.SolidLine)
-        self.style_fin = QPen(Qt.white, 1, Qt.SolidLine)
+        self.style_fin = QPen(Qt.red, 2, Qt.SolidLine)
         self.style_rouge = QPen(Qt.red, 4, Qt.SolidLine)
 
         # chargement images
@@ -118,13 +118,7 @@ class Main(QMainWindow):
             painter.drawEllipse(QPoint(self.pt_col[0], self.pt_col[1]), 10, 10)
             painter.setPen(self.style_base)
 
-
-
-
         # affichage arretes découvertes
-
-
-
 
         if self.show_taches:
             taches = self.model.map.taches
@@ -160,6 +154,18 @@ class Main(QMainWindow):
 
             painter.drawEllipse(QPoint(xy[0], xy[1]), self.r_player, self.r_player)
             painter.drawText(self.size[0] / 2, self.size[1] / 2, 'GameOver')
+
+        elif len(self.model.map.arretes) == len(points) and etat != 4:
+
+            title_font = QtGui.QFont()
+            title_font.setFamily("Cooper Black")
+            title_font.setPointSize(14)
+
+            self.show_polygon = True
+
+            painter.drawEllipse(QPoint(xy[0], xy[1]), self.r_player, self.r_player)
+            painter.drawText(self.size[0] / 2, self.size[1] / 2, 'Bravo !')
+
 
         # Demande de tir : 0
         elif etat == 0:
