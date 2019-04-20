@@ -1,8 +1,8 @@
 from PyQt5 import QtGui
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
 
 
-from PyQt5.QtGui import QPainter, QBrush, QPen, QPolygon
+from PyQt5.QtGui import QPainter, QBrush, QPen, QPolygon, QIcon, QPixmap
 from PyQt5.QtCore import Qt, QPoint, QTimer
 
 import model
@@ -31,6 +31,19 @@ class Main(QMainWindow):
         self.v_tir = 500
         self.lg_tir = 20
         self.r_tir_max = 500
+        self.r_tache = 50
+
+        # style
+        self.style_base = QPen(Qt.white, 2, Qt.SolidLine)
+        self.style_gris = QPen(Qt.gray, 2, Qt.SolidLine)
+        self.style_fin = QPen(Qt.white, 1, Qt.SolidLine)
+        self.style_rouge = QPen(Qt.red, 4, Qt.SolidLine)
+
+        # chargement images
+        self.drop = QPixmap('drop.png').scaled(100, 30, Qt.KeepAspectRatio, Qt.FastTransformation)
+        self.splash = QPixmap('splash.png')
+        #self.transform = QtGui.QTransform()
+
 
         self.deplacement = (0, (0, 0), 0) #  angle, distance target, t0 initial time
 
@@ -53,8 +66,14 @@ class Main(QMainWindow):
     def initWindow(self):
 
         self.setMouseTracking(True)
+        #self.setCursor(QtGui.QCursor(Qt.BlankCursor))
         self.setWindowTitle('PainBall')
         self.setGeometry(200, 200, self.size[0], self.size[1])
+
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.black)
+        self.setPalette(p)
 
         self.show()
 
@@ -62,17 +81,21 @@ class Main(QMainWindow):
 
         # INITIALISATION painter, etat etc
 
+
         # etat joueur True = tir, False = deplacement
         etat = self.model.player.etat
 
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
-        painter.setPen(QPen(Qt.black, 2, Qt.SolidLine))
+        painter.setPen(self.style_base)
 
         poly = self.model.map.polygone
         points = [QPoint(poly[0, i], poly[1, i]) for i in range(0, poly.shape[1])]
 
         # OPTIONS D'AFFICHAGE
+
+        #painter.drawPixmap(100, 100, self.drop)
+
 
         # affichage polygone
 
@@ -80,18 +103,18 @@ class Main(QMainWindow):
 
             #points = [QPoint(100, 100), QPoint(200, 100), QPoint(200, 100)]
             Qpoly = QPolygon(points)
-            painter.setPen(QPen(Qt.gray, 2, Qt.SolidLine))
+            painter.setPen(self.style_gris)
             painter.drawPolygon(Qpoly)
-            painter.setPen(QPen(Qt.black, 2, Qt.SolidLine))
+            painter.setPen(self.style_1)
 
         if self.show_numbers:
             for i in range(len(points)):
                 painter.drawText(points[i], str(i))
 
         if self.show_impact:
-            painter.setPen(QPen(Qt.red, 4, Qt.SolidLine))
+            painter.setPen(self.style_rouge)
             painter.drawEllipse(QPoint(self.pt_col[0], self.pt_col[1]), 10, 10)
-            painter.setPen(QPen(Qt.black, 2, Qt.SolidLine))
+            painter.setPen(self.style_base)
 
 
 
@@ -262,8 +285,11 @@ class Main(QMainWindow):
         r_sup = 1000
         x, y = xy[0] + r_sup * np.cos(alpha), xy[1] + r_sup * np.sin(alpha)
 
+
         painter.drawEllipse(QPoint(xy[0], xy[1]), self.r_player, self.r_player)
+        painter.setPen(self.style_fin)
         painter.drawLine(xy[0], xy[1], x, y)
+        painter.setPen(self.style_base)
 
     def animation_tir(self, painter):
         xy = self.model.player.coords
@@ -298,6 +324,7 @@ class Main(QMainWindow):
         if r > min(distance, self.r_deplacement) or self.collision_joueur((x0, y0)):
             self.model.player.coords = (x0, y0, alpha)
             self.model.player.etat = 0
+
 
 
 
