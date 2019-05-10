@@ -33,7 +33,7 @@ class Ui_Menu(QtWidgets.QWidget):
 
         self.titre = QtWidgets.QLabel('PaintBall')
         self.titre.setFont(title_font)
-        self.titre.setText('<html><head/><body><p align=\"center\"><span style=\" font-size:26pt; font-weight:600; color:#9c393b;\">Paint Ball V0.1</span></p></body></html>')
+        self.titre.setText('<html><head/><body><p align=\"center\"><span style=\" font-size:26pt; font-weight:600; color:#9c393b;\">Paint Ball V1</span></p></body></html>')
 
         self.jouer = QtWidgets.QPushButton('Jouer')
         self.jouer.setFont(font)

@@ -86,6 +86,36 @@ class Collision:
 
         return points
 
+    def getAngle(self, A, B):
+        '''
+        retourne l'angle entre A, B et l'horizontale
+        '''
+
+        a, b, s = 0, 0, 0
+        x, y = A
+        dx, dy = B[0] - x, B[1] - y
+
+        if dx != 0 and dy != 0:
+            s_1 = dx / abs(dx)
+            s_2 = (dy) / abs(dy)
+            alpha = np.arctan(dy / dx)
+            if s_1 < 0:
+                alpha += np.pi
+            elif s_2 < 0:
+                alpha += 2*np.pi
+        elif dx == 0:
+            if dy < 0:
+                return 3*np.pi/2
+            else:
+                return np.pi/2
+        else:
+            if dx < 0:
+                return np.pi
+            else:
+                return 0
+
+        return alpha
+
 
 if __name__ == '__main__':
     col = Collision()

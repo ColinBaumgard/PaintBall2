@@ -2,14 +2,19 @@ import math
 import numpy as np
 import random
 import matplotlib.pyplot as plt
-
+from PyQt5.QtCore import QPoint
 
 class Map:
     def __init__(self, size=(700, 700), level=10):
         self.size = size
+        self.Qpolygone = []
         self.polygone = self.generer(level)
+
         self.arretes = []
         self.taches = [] # [[[Ax, Ay], [Bx, By]], [...], ...]
+
+        self.startPoint = []
+        self.finishPoint = []
 
     def generer(self, n=17, r_min=100, r_max=300):
         '''
@@ -28,6 +33,7 @@ class Map:
         for i in range(n):
             x = self.size[0]/2 + rayons[i]*np.cos(angles[i])
             y = self.size[1]/2 + rayons[i]*np.sin(angles[i])
+            self.Qpolygone.append(QPoint(x, y))
             points[0, i] = x
             points[1, i] = y
 

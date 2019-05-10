@@ -408,12 +408,6 @@ class Main(QMainWindow):
 
         painter.drawEllipse(QPoint(xy[0], xy[1]), self.r_player, self.r_player)
 
-
-
-
-
-
-
     def points_tache(self, r):
         '''
         Retourne les extremitées de la tâche
