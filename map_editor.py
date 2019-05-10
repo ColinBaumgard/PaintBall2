@@ -1,5 +1,5 @@
 from PyQt5 import QtGui
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QInputDialog, QLineEdit
 
 
 from PyQt5.QtGui import QPainter, QBrush, QPen, QPolygon, QIcon, QPixmap
@@ -10,13 +10,14 @@ import collision
 import map
 
 import sys
+import pickle
 import numpy as np
 import time
 
 
 class Editor(QMainWindow):
 
-    def __init__(self, size=(1000, 1000)):
+    def __init__(self, size=(700, 700)):
         super().__init__()
 
         self.geometrie = collision.Collision()
@@ -28,6 +29,9 @@ class Editor(QMainWindow):
         self.map.startPoint, self.map.finishPoint = QPoint(-100, -100), QPoint(-100, -100)
         self.poly = []
         self.distance_min = 20
+        self.title = 'untitled'
+
+
 
 
         self.mode_edition = 0
@@ -36,6 +40,12 @@ class Editor(QMainWindow):
         self.style_gris = QPen(Qt.gray, 2, Qt.SolidLine)
         self.style_fin = QPen(Qt.red, 2, Qt.SolidLine)
         self.style_rouge = QPen(Qt.red, 4, Qt.SolidLine)
+        self.style_vert = QPen(Qt.green, 2, Qt.SolidLine)
+        self.style_jaune = QPen(Qt.yellow, 2, Qt.SolidLine)
+
+        title_font = QtGui.QFont()
+        title_font.setFamily("Cooper Black")
+        title_font.setPointSize(14)
 
         self.initWindow()
 
@@ -50,7 +60,7 @@ class Editor(QMainWindow):
         self.setMouseTracking(True)
         #self.setCursor(QtGui.QCursor(Qt.BlankCursor))
         self.setWindowTitle('Map Editor')
-        self.setGeometry(200, 200, self.size[0], self.size[1])
+        self.setGeometry(50, 50, self.size[0], self.size[1])
 
         self.setAutoFillBackground(True)
         p = self.palette()
@@ -88,12 +98,22 @@ class Editor(QMainWindow):
             painter.drawPolygon(Qpoly)
             painter.setPen(self.style_base)
 
-            painter.setPen(self.style_gris)
+            painter.setPen(self.style_jaune)
             painter.drawEllipse(self.map.startPoint, 2*self.distance_min, 2*self.distance_min)
-            painter.setPen(self.style_rouge)
+
+            painter.setPen(self.style_vert)
             painter.drawEllipse(self.map.finishPoint, 2*self.distance_min, 2*self.distance_min)
 
 
+        if self.mode_edition == 0:
+            painter.setPen(self.style_base)
+            painter.drawText(50, 100, ' - Tracez un polygone - ')
+        elif self.mode_edition == 1:
+            painter.setPen(self.style_jaune)
+            painter.drawText(50, 100, ' - Placez un point de départ - ')
+        elif self.mode_edition == 2:
+            painter.setPen(self.style_vert)
+            painter.drawText(50, 100, " - Placez un point d'arrivée - ")
 
 
 
@@ -113,13 +133,20 @@ class Editor(QMainWindow):
             elif n > 2:
                 if self.geometrie.distanceAB(A, self.poly[0]) < self.distance_min:
                     self.map.Qpolygone = [QPoint(A[0], A[1]) for A in self.poly]
+                    points = np.zeros((2, n))
+                    for i in range(n):
+                        points[0, i] = self.poly[i][0]
+                        points[1, i] = self.poly[i][1]
+                    self.map.polygone = points
                     self.mode_edition = 1
 
-        if self.mode_edition == 1:
+        elif self.mode_edition == 1:
             self.map.startPoint = QPoint(self.x_mouse, self.y_mouse)
+            self.mode_edition = 2
 
         elif self.mode_edition == 2:
             self.map.finishPoint = QPoint(self.x_mouse, self.y_mouse)
+            self.getText()
 
 
 
@@ -128,6 +155,12 @@ class Editor(QMainWindow):
 
     def mouseMoveEvent(self, e):
         self.x_mouse, self.y_mouse = e.x(), e.y()
+
+        if self.mode_edition == 1:
+            self.map.startPoint = QPoint(self.x_mouse, self.y_mouse)
+
+        elif self.mode_edition == 2:
+            self.map.finishPoint = QPoint(self.x_mouse, self.y_mouse)
 
     def keyPressEvent(self, event):
         '''
@@ -140,6 +173,16 @@ class Editor(QMainWindow):
         print(key)
         if key == Qt.Key_Execute:
             self.mode_edition += 1
+
+    def getText(self):
+        text, okPressed = QInputDialog.getText(self, "Map Editor", "Nom de la map :", QLineEdit.Normal, "")
+        if okPressed and text != '':
+            self.title = text
+            self.saveMap()
+            self.destroy()
+
+    def saveMap(self):
+        pickle.dump(self.map, open('maps/' + self.title + '.map', 'wb'))
 
 
 if __name__ == '__main__':
