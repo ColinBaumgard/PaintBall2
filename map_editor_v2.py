@@ -26,14 +26,15 @@ class Editor(QMainWindow):
         self.size = size
         self.fps = 60
         self.map = map.Map(self.size, 0)
-        self.map.startPoint, self.map.finishPoint = QPoint(100, 100), QPoint(600, 100)
+        self.map.startPoint, self.map.finishPoint = QPoint(-100, -100), QPoint(-100, -100)
         self.poly = []
         self.distance_min = 20
         self.title = 'untitled'
-
-
-
         self.mode_edition = 0
+        self.distance_selection = 20
+
+        self.selectedPoint = (False, 0)
+
 
         self.style_base = QPen(Qt.white, 2, Qt.SolidLine)
         self.style_gris = QPen(Qt.gray, 2, Qt.SolidLine)
@@ -67,6 +68,7 @@ class Editor(QMainWindow):
         self.setPalette(p)
 
         self.show()
+
 
     def paintEvent(self, event):
 
@@ -103,7 +105,6 @@ class Editor(QMainWindow):
             painter.setPen(self.style_vert)
             painter.drawEllipse(self.map.finishPoint, 2*self.distance_min, 2*self.distance_min)
 
-
         if self.mode_edition == 0:
             painter.setPen(self.style_base)
             painter.drawText(50, 100, ' - Tracez un polygone - ')
@@ -113,6 +114,11 @@ class Editor(QMainWindow):
         elif self.mode_edition == 2:
             painter.setPen(self.style_vert)
             painter.drawText(50, 100, " - Placez un point d'arrivée - ")
+        elif self.mode_edition == 3:
+            painter.setPen(self.style_base)
+            painter.drawText(50, 100, " - Appuyez sur entrée après modification eventuelle - ")
+            for M in self.poly:
+                painter.drawEllipse(QPoint(M[0], M[1]), self.distance_min, self.distance_min)
 
 
 
@@ -145,12 +151,21 @@ class Editor(QMainWindow):
 
         elif self.mode_edition == 2:
             self.map.finishPoint = QPoint(self.x_mouse, self.y_mouse)
-            self.getText()
+            self.mode_edition = 3
 
-
-
+        elif self.mode_edition == 3:
+            i = 0
+            self.selectedPoint = (False, 0)
+            for M in self.poly:
+                if self.geometrie.distanceAB(M, A) < self.distance_min:
+                    self.selectedPoint = (True, i)
+                i += 1
 
         self.update()
+
+    def mouseReleaseEvent(self, *args, **kwargs):
+        if self.mode_edition == 3:
+            self.selectedPoint = (False, 0)
 
     def mouseMoveEvent(self, e):
         self.x_mouse, self.y_mouse = e.x(), e.y()
@@ -161,6 +176,15 @@ class Editor(QMainWindow):
         elif self.mode_edition == 2:
             self.map.finishPoint = QPoint(self.x_mouse, self.y_mouse)
 
+        elif self.mode_edition == 3 and self.selectedPoint[0]:
+            QM = QPoint(self.x_mouse, self.y_mouse)
+            M = (self.x_mouse, self.y_mouse)
+            self.poly[self.selectedPoint[1]] = M
+            self.map.polygone[0, self.selectedPoint[1]] = self.x_mouse
+            self.map.polygone[1, self.selectedPoint[1]] = self.y_mouse
+            self.map.Qpolygone[self.selectedPoint[1]] = QM
+
+
     def keyPressEvent(self, event):
         '''
         if key == Qt.Key_p:
@@ -170,9 +194,9 @@ class Editor(QMainWindow):
         elif key = Qt.Key_'''
         key = event.key()
         #print(key)
-        if key == Qt.Key_Return:
+        if key == Qt.Key_Return and self.mode_edition == 3:
             print('enter')
-            self.mode_edition += 1
+            self.getText()
 
     def getText(self):
         text, okPressed = QInputDialog.getText(self, "Map Editor", "Nom de la map :", QLineEdit.Normal, "")

@@ -7,21 +7,26 @@ from PyQt5.QtCore import Qt, QPoint, QTimer
 
 import model
 import collision
+import map
+import player
 
 import sys
 import numpy as np
 import time
+import pickle
 
 
-class Main(QMainWindow):
+class Jeu(QMainWindow):
 
-    def __init__(self, level=10):
+    def __init__(self):
         super().__init__()
 
         self.collision = collision.Collision()
 
         self.size = (700, 700)
-        self.model = model.Model(self.size, level)
+        self.model = model.Model(self.size, 3)
+        self.model.map = self.load_map()
+
         self.r_player = 10
         self.r_deplacement = 100
         self.fps = 60
@@ -35,11 +40,13 @@ class Main(QMainWindow):
         self.v_tache = 600
         self.t_tache = 0
 
-        # style
+        # styles
         self.style_base = QPen(Qt.white, 2, Qt.SolidLine)
         self.style_gris = QPen(Qt.gray, 2, Qt.SolidLine)
         self.style_fin = QPen(Qt.red, 2, Qt.SolidLine)
         self.style_rouge = QPen(Qt.red, 4, Qt.SolidLine)
+        self.style_vert = QPen(Qt.green, 2, Qt.SolidLine)
+        self.style_jaune = QPen(Qt.yellow, 2, Qt.SolidLine)
 
         # chargement images
         self.drop = QPixmap('drop.png').scaled(100, 30, Qt.KeepAspectRatio, Qt.FastTransformation)
@@ -58,9 +65,9 @@ class Main(QMainWindow):
         self.initWindow()
 
         # OPTION DE DEBBUG
-        self.show_polygon = False
-        self.show_impact = False
-        self.show_numbers = False
+        self.show_polygon = True
+        self.show_impact = True
+        self.show_numbers = True
         self.show_taches = True
 
         # attributs debbug
@@ -85,7 +92,7 @@ class Main(QMainWindow):
         # INITIALISATION painter, etat etc
 
 
-        # etat joueur True = tir, False = deplacement
+        # etat joueur
         etat = self.model.player.etat
 
         painter = QPainter(self)
@@ -96,8 +103,6 @@ class Main(QMainWindow):
         points = [QPoint(poly[0, i], poly[1, i]) for i in range(0, poly.shape[1])]
 
         # OPTIONS D'AFFICHAGE
-
-        #painter.drawPixmap(100, 100, self.drop)
 
 
         # affichage polygone
@@ -120,7 +125,7 @@ class Main(QMainWindow):
 
         # affichage arretes découvertes
 
-        if self.show_taches:
+        if self.show_taches:  # on affiche que les tâches
             taches = self.model.map.taches
             for tache in taches:
                 A = QPoint(tache[0][0], tache[0][1])
@@ -128,7 +133,7 @@ class Main(QMainWindow):
 
                 painter.drawLine(A, B)
 
-        else:
+        else:   # sinon on affiche les arretes entières
             arretes = self.model.map.arretes
 
             for arrete in arretes:
@@ -139,7 +144,7 @@ class Main(QMainWindow):
 
 
 
-        # affichage joueur
+        # coordonnées joueur
         xy = self.model.player.coords
 
 
@@ -155,7 +160,7 @@ class Main(QMainWindow):
             painter.drawEllipse(QPoint(xy[0], xy[1]), self.r_player, self.r_player)
             painter.drawText(self.size[0] / 2, self.size[1] / 2, 'GameOver')
 
-        elif len(self.model.map.arretes) == len(points) and etat != 4:
+        elif self.objectif():
 
             title_font = QtGui.QFont()
             title_font.setFamily("Cooper Black")
@@ -193,6 +198,18 @@ class Main(QMainWindow):
         else:
             self.model.player.etat = 0
 
+    def objectif(self):
+        '''Défini les objectif du joueur selon le mode de jeu
+        Retourne True si ils sont validés / False sinon'''
+
+        return self.model.map.arretes == self.model.map.polygone.shape[1] and self.etat != 4
+
+    def load_map(self):
+        """Chargement ou creation de map, en fct du mode de jeu
+        retourne un objet map"""
+
+        return map.Map()
+
     def mousePressEvent(self, e):
         etat = self.model.player.etat
         x_player, y_player, angle = self.model.player.coords
@@ -200,13 +217,13 @@ class Main(QMainWindow):
 
         if etat == 0:  # ie si tir
             self.model.player.etat = 1
-            a = self.getAngle()
+            a = self.collision.getAngle((self.model.player.coords[0], self.model.player.coords[1]), (self.x_mouse, self.y_mouse))
             impacte = self.collision_tir()
             self.tir = (a, time.time(), impacte)
             #self.animation_tir()
 
         elif etat == 2:  # ie si deplacement
-            alpha = self.getAngle()
+            alpha = self.collision.getAngle((self.model.player.coords[0], self.model.player.coords[1]), (self.x_mouse, self.y_mouse))
             distance = np.sqrt((e.x() - x_player)**2 + (e.y() - y_player)**2)
             self.deplacement = (alpha, distance, time.time())
             self.model.player.etat = 3
@@ -216,60 +233,12 @@ class Main(QMainWindow):
     def mouseMoveEvent(self, e):
         self.x_mouse, self.y_mouse = e.x(), e.y()
 
-    def getAngle(self):
-        '''
-        retourne l'angle du joueur
-        '''
-
-        a, b, s = 0, 0, 0
-        x, y, alpha = self.model.player.coords
-        dx, dy = self.x_mouse - x, self.y_mouse - y
-
-        if dx != 0 and dy != 0:
-            s_1 = dx / abs(dx)
-            s_2 = (dy) / abs(dy)
-            alpha = np.arctan(dy / dx)
-            if s_1 < 0:
-                alpha += np.pi
-            elif s_2 < 0:
-                alpha += 2*np.pi
-        elif dx == 0:
-            if dy < 0:
-                return 3*np.pi/2
-            else:
-                return np.pi/2
-        else:
-            if dx < 0:
-                return np.pi
-            else:
-                return 0
-
-        return alpha
-
-    def pointsToParam(self):
-        '''
-        retourne les paramètres d'une droite ansi qu'une indication sur la direction de celle si
-        :return: a, b de ax+n et s si la droite est vers la droite (+) ou vers la gauche (-)
-        '''
-
-        a, b, s = 0, 0, 0
-        x, y, alpha = self.model.player.coords
-
-
-        if self.x_mouse - x != 0:
-            a = (self.y_mouse - y)/(self.x_mouse - x)
-            b = y - a*x
-            s = (self.x_mouse - x) / abs(self.x_mouse - x)
-
-
-        return a, b, s
-
     def collision_tir(self):
 
         xy = self.model.player.coords
-        a1, b1, s = self.pointsToParam()
+        a1, b1 = self.collision.pointsToPara((self.x_mouse, self.y_mouse), (self.model.player.coords[0], self.model.player.coords[1]))
         d1 = (a1, b1)
-        alpha = self.getAngle()
+        alpha = self.collision.getAngle((self.model.player.coords[0], self.model.player.coords[1]), (self.x_mouse, self.y_mouse))
 
         poly = self.model.map.polygone
         n = poly.shape[1]
@@ -278,34 +247,28 @@ class Main(QMainWindow):
         r_min = 10000 #  valeur sortant de la fenêtre
         r_sup = 10000
 
+
         for i in range(n):
 
             j = (i+1) % n
+
             d2 = self.collision.pointsToPara((poly[0, i], poly[1, i]), (poly[0, j], poly[1, j]))
             point_coll = self.collision.intersection(d1, d2)
 
 
             if point_coll[0]:
                 C = (point_coll[1], point_coll[2])
-
                 if self.collision.estEntreAetB(C, (poly[0, i], poly[1, i]), (poly[0, j], poly[1, j])):
                     x, y = xy[0] + r_sup * np.cos(alpha), xy[1] + r_sup * np.sin(alpha)
 
                     if self.collision.estEntreAetB(C, (xy[0], xy[1]), (x, y)):
 
 
-                        ''' Test si la collision n'est pas trop loin. Inutile ?
                         r = np.sqrt((C[0] - xy[0])**2 + (C[1] - xy[1])**2)
                         if r < r_min:
                             r_min = r
                             self.pt_col = C
-                            impacte = (i, j)'''
-
-                        r = np.sqrt((C[0] - xy[0])**2 + (C[1] - xy[1])**2)
-                        r_min = r
-                        self.pt_col = C
-                        impacte = (i, j)
-
+                            impacte = (i, j)
 
 
 
@@ -317,7 +280,7 @@ class Main(QMainWindow):
 
     def demande_tir(self, painter):
         xy = self.model.player.coords
-        alpha = self.getAngle()
+        alpha = self.collision.getAngle((self.model.player.coords[0], self.model.player.coords[1]), (self.x_mouse, self.y_mouse))
         r_sup = 1000
         x, y = xy[0] + r_sup * np.cos(alpha), xy[1] + r_sup * np.sin(alpha)
 
@@ -379,7 +342,7 @@ class Main(QMainWindow):
         if np.sqrt((xy[0] - self.x_mouse) ** 2 + (xy[1] - self.y_mouse) ** 2) < self.r_deplacement:
             x, y = self.x_mouse, self.y_mouse
         else:
-            alpha = self.getAngle()
+            alpha = self.collision.getAngle((self.model.player.coords[0], self.model.player.coords[1]), (self.x_mouse, self.y_mouse))
             x, y = xy[0] + self.r_deplacement * np.cos(alpha), xy[1] + self.r_deplacement * np.sin(alpha)
 
         painter.drawEllipse(QPoint(xy[0], xy[1]), self.r_player, self.r_player)
@@ -447,6 +410,49 @@ class Main(QMainWindow):
 
         return E, F
 
+class RandomPB(Jeu):
+    def __init__(self):
+        super().__init__()
+
+    def objectif(self):
+        return self.model.map.arretes == self.model.map.polygone.shape[1] and self.etat != 4
+
+    def load_map(self):
+        new_map = map.Map()
+        new_map.polygone = self.collision.polyGenerator(3)
+
+        return new_map
+
+class PathPB(Jeu):
+
+    def __init__(self):
+        super().__init__()
+        self.model.player.coords = (self.model.map.startPoint.x(), self.model.map.startPoint.y(), 0)
+
+
+    def objectif(self):
+        x, y, a = self.model.player.coords
+        if self.collision.distanceAB((x, y), (self.model.map.finishPoint.x(), self.model.map.finishPoint.y())) < 2*self.r_player:
+            return True
+        else:
+            return False
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setPen(self.style_base)
+
+        # on dessine les points de départ et d'arrivé
+        painter.setPen(self.style_jaune)
+        painter.drawEllipse(self.model.map.startPoint, 2 * self.r_player, 2 * self.r_player)
+
+        painter.setPen(self.style_vert)
+        painter.drawEllipse(self.model.map.finishPoint, 2 * self.r_player, 2 * self.r_player)
+
+    def load_map(self):
+        return pickle.load(open('maps/test.map', 'rb'))
 
 
 if __name__ == '__main__':
@@ -454,6 +460,6 @@ if __name__ == '__main__':
     if not app:
         app = QApplication(sys.argv)
 
-    fen = Main()
+    fen = PathPB()
 
     sys.exit(app.exec())

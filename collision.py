@@ -1,9 +1,33 @@
 import numpy as np
+import random
 
 class Collision:
 
     def __init__(self):
         pass
+
+    def polyGenerator(self, n=17, r_min=100, r_max=300, size=(700, 700)):
+        '''
+        génération du polygone à découvrir
+        :param n: nombre de points
+        :param r_min: rayon min, tous les points seront a une distance supérieur du centre
+        :param r_max: rayon max, tous les points seront a une distance inférieur du centre
+        :return: matrice 2*n, coordonnées des points du polygone
+        '''
+
+        angles = sorted([random.random()*2*np.pi for i in range(n)])
+        rayons = [random.random()*(r_max - r_min)+r_min for i in range(n)]
+
+        points = np.zeros((2, n))
+
+        for i in range(n):
+            x = size[0]/2 + rayons[i]*np.cos(angles[i])
+            y = size[1]/2 + rayons[i]*np.sin(angles[i])
+
+            points[0, i] = x
+            points[1, i] = y
+
+        return points
 
     def distanceAB(self, A, B):
         x1, y1 = A
