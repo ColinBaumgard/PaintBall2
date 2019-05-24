@@ -65,9 +65,9 @@ class Jeu(QMainWindow):
         self.initWindow()
 
         # OPTION DE DEBBUG
-        self.show_polygon = True
-        self.show_impact = True
-        self.show_numbers = True
+        self.show_polygon = False
+        self.show_impact = False
+        self.show_numbers = False
         self.show_taches = True
 
         # attributs debbug
