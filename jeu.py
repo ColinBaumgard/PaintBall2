@@ -14,6 +14,7 @@ import sys
 import numpy as np
 import time
 import pickle
+import os
 
 
 class Jeu(QMainWindow):
@@ -35,7 +36,7 @@ class Jeu(QMainWindow):
         self.tir = (0, 0, (False, (0, 0), 0))  # angle, temps et impacte(bool, (i, j), r_min)
         self.v_tir = 500
         self.lg_tir = 20
-        self.r_tir_max = 500
+        self.r_tir_max = 1000
         self.r_tache = 1000
         self.v_tache = 600
         self.t_tache = 0
@@ -65,7 +66,7 @@ class Jeu(QMainWindow):
         self.initWindow()
 
         # OPTION DE DEBBUG
-        self.show_polygon = False
+        self.show_polygon = True
         self.show_impact = False
         self.show_numbers = False
         self.show_taches = True
@@ -281,7 +282,7 @@ class Jeu(QMainWindow):
     def demande_tir(self, painter):
         xy = self.model.player.coords
         alpha = self.collision.getAngle((self.model.player.coords[0], self.model.player.coords[1]), (self.x_mouse, self.y_mouse))
-        r_sup = 1000
+        r_sup = 10000
         x, y = xy[0] + r_sup * np.cos(alpha), xy[1] + r_sup * np.sin(alpha)
 
 
@@ -411,21 +412,27 @@ class Jeu(QMainWindow):
         return E, F
 
 class RandomPB(Jeu):
-    def __init__(self):
+    def __init__(self, nb_arretes=4):
+        self.nb_arretes_menu = nb_arretes
+
         super().__init__()
+
 
     def objectif(self):
         return self.model.map.arretes == self.model.map.polygone.shape[1] and self.etat != 4
 
     def load_map(self):
         new_map = map.Map()
-        new_map.polygone = self.collision.polyGenerator(3)
+        new_map.polygone = self.collision.polyGenerator(self.nb_arretes_menu)
 
         return new_map
 
 class PathPB(Jeu):
 
-    def __init__(self):
+    def __init__(self, map_name):
+
+        self.map_name = map_name
+
         super().__init__()
         self.model.player.coords = (self.model.map.startPoint.x(), self.model.map.startPoint.y(), 0)
 
@@ -452,7 +459,12 @@ class PathPB(Jeu):
         painter.drawEllipse(self.model.map.finishPoint, 2 * self.r_player, 2 * self.r_player)
 
     def load_map(self):
-        return pickle.load(open('maps/test.map', 'rb'))
+
+        maps = os.listdir('maps')
+        print(maps)
+
+
+        return pickle.load(open('maps/'+self.map_name, 'rb'))
 
 
 if __name__ == '__main__':
@@ -460,6 +472,6 @@ if __name__ == '__main__':
     if not app:
         app = QApplication(sys.argv)
 
-    fen = PathPB()
+    fen = RandomPB()
 
     sys.exit(app.exec())

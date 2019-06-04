@@ -7,7 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-import sys
+import sys, os
 
 
 class Ui_Menu(QtWidgets.QWidget):
@@ -16,6 +16,9 @@ class Ui_Menu(QtWidgets.QWidget):
         QtWidgets.QWidget.__init__(self)
         self.setWindowTitle('Menu')
         self.resize(500, 300)
+
+        self.liste_maps = os.listdir('maps')
+        self.i_map = 0
 
         self.setupUi()
 
@@ -109,12 +112,16 @@ class Ui_Menu(QtWidgets.QWidget):
         layout = QtWidgets.QHBoxLayout()
         layout.setAlignment(QtCore.Qt.AlignCenter)
 
-        self.leftB = QtWidgets.QLabel('<-   ')
+        self.leftB = QtWidgets.QPushButton('<-   ')
         self.leftB.setFont(font)
-        self.map_name = QtWidgets.QLabel('Map XXX')
+        self.map_name = QtWidgets.QLabel(self.liste_maps[self.i_map])
         self.map_name.setFont(font)
-        self.rightB = QtWidgets.QLabel('   ->')
+        self.rightB = QtWidgets.QPushButton('   ->')
         self.rightB.setFont(font)
+
+
+        self.leftB.clicked.connect(self.switch_map_left)
+        self.rightB.clicked.connect(self.switch_map_right)
 
         layout.addWidget(self.leftB)
         layout.addWidget(self.map_name)
@@ -129,6 +136,27 @@ class Ui_Menu(QtWidgets.QWidget):
 
         else:
             self.stack.setCurrentIndex(1)
+
+    def switch_map_left(self):
+
+        self.liste_maps = os.listdir('maps')
+
+        self.i_map = (self.i_map + 1) % len(self.liste_maps)
+
+        self.map_name.setText(self.liste_maps[self.i_map])
+
+    def switch_map_right(self):
+
+        self.liste_maps = os.listdir('maps')
+
+        self.i_map = (self.i_map - 1) % len(self.liste_maps)
+
+        self.map_name.setText(self.liste_maps[self.i_map])
+
+
+
+
+
 
 
 if __name__ == '__main__':
