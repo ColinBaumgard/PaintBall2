@@ -18,7 +18,7 @@ class PaintBall:
     def main(self):
         print('main')
         if self.menu_ui.radioBtnMap.isChecked():
-            self.main_ui = jeu.PathPB('test.map')
+            self.main_ui = jeu.PathPB(self.menu_ui.liste_maps[self.menu_ui.i_map])
         else:
             self.main_ui = jeu.RandomPB(self.menu_ui.level.value())
             

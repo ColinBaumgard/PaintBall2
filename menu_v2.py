@@ -114,7 +114,7 @@ class Ui_Menu(QtWidgets.QWidget):
 
         self.leftB = QtWidgets.QPushButton('<-   ')
         self.leftB.setFont(font)
-        self.map_name = QtWidgets.QLabel(self.liste_maps[self.i_map])
+        self.map_name = QtWidgets.QLabel(self.liste_maps[self.i_map][:-4])
         self.map_name.setFont(font)
         self.rightB = QtWidgets.QPushButton('   ->')
         self.rightB.setFont(font)
@@ -143,7 +143,7 @@ class Ui_Menu(QtWidgets.QWidget):
 
         self.i_map = (self.i_map + 1) % len(self.liste_maps)
 
-        self.map_name.setText(self.liste_maps[self.i_map])
+        self.map_name.setText(self.liste_maps[self.i_map][:-4])
 
     def switch_map_right(self):
 
@@ -151,7 +151,7 @@ class Ui_Menu(QtWidgets.QWidget):
 
         self.i_map = (self.i_map - 1) % len(self.liste_maps)
 
-        self.map_name.setText(self.liste_maps[self.i_map])
+        self.map_name.setText(self.liste_maps[self.i_map][:-4])
 
 
 

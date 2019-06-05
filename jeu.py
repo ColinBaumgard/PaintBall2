@@ -235,8 +235,11 @@ class Jeu(QMainWindow):
         self.x_mouse, self.y_mouse = e.x(), e.y()
 
     def collision_tir(self):
+        '''Calcule la potentielle collisison entre une balle et un mur'''
 
-        xy = self.model.player.coords
+        # On calcule les paramètres préalables
+
+        xy = self.model.player.coords  # coordonnées du joueur
         a1, b1 = self.collision.pointsToPara((self.x_mouse, self.y_mouse), (self.model.player.coords[0], self.model.player.coords[1]))
         d1 = (a1, b1)
         alpha = self.collision.getAngle((self.model.player.coords[0], self.model.player.coords[1]), (self.x_mouse, self.y_mouse))
@@ -248,28 +251,33 @@ class Jeu(QMainWindow):
         r_min = 10000 #  valeur sortant de la fenêtre
         r_sup = 10000
 
-
+        # pour toutes les points
         for i in range(n):
 
+            # on prend la droite reliant le point et son voisin
             j = (i+1) % n
 
+            # on calcule les paramètres de la droite et on detecte une intersection avec la trajectoire de la balle
             d2 = self.collision.pointsToPara((poly[0, i], poly[1, i]), (poly[0, j], poly[1, j]))
             point_coll = self.collision.intersection(d1, d2)
 
-
+            # Si les droites sont sécantes
             if point_coll[0]:
                 C = (point_coll[1], point_coll[2])
+
+                # et si l'impacte est sur le segment
                 if self.collision.estEntreAetB(C, (poly[0, i], poly[1, i]), (poly[0, j], poly[1, j])):
                     x, y = xy[0] + r_sup * np.cos(alpha), xy[1] + r_sup * np.sin(alpha)
 
+                    # du bon coté du joueur (demi-droite de la trajectoire balle)
                     if self.collision.estEntreAetB(C, (xy[0], xy[1]), (x, y)):
 
-
+                        # on verifie que c'est bien la collision la plus proche
                         r = np.sqrt((C[0] - xy[0])**2 + (C[1] - xy[1])**2)
                         if r < r_min:
                             r_min = r
                             self.pt_col = C
-                            impacte = (i, j)
+                            impacte = (i, j) # si oui, on l'enregistre
 
 
 
