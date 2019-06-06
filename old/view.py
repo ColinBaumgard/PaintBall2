@@ -1,7 +1,6 @@
-import mainwindow
-import model
+from old import mainwindow
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtWidgets
 import sys
 
 class View:

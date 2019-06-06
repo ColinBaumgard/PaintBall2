@@ -1,8 +1,5 @@
 import model
-import view
-import controller
-
-import time
+from old import controller, view
 
 
 class Main:

@@ -1,4 +1,4 @@
-import menu, mainwindow
+from old import menu, mainwindow
 import sys
 from PyQt5.QtWidgets import QApplication
 

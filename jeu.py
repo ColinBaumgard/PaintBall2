@@ -8,7 +8,6 @@ from PyQt5.QtCore import Qt, QPoint, QTimer
 import model
 import collision
 import map
-import player
 
 import sys
 import numpy as np
@@ -67,8 +66,8 @@ class Jeu(QMainWindow):
 
         # OPTION DE DEBBUG
         self.show_polygon = True
-        self.show_impact = False
-        self.show_numbers = False
+        self.show_impact = True
+        self.show_numbers = True
         self.show_taches = True
 
         # attributs debbug
@@ -334,6 +333,8 @@ class Jeu(QMainWindow):
         painter.drawLine(x1, y1, x2, y2)
 
     def animation_deplacement(self, painter):
+        '''Animation du déplacement '''
+
         xy = self.model.player.coords
         alpha, distance, t0 = self.deplacement
         t = time.time() - t0
@@ -468,11 +469,30 @@ class PathPB(Jeu):
 
     def load_map(self):
 
-        maps = os.listdir('maps')
-        print(maps)
+        new_map = map.Map()
+
+        with open('maps/' + self.map_name, 'r') as file:
+
+            for ligne in file:
+                data = ligne.split('/')
+
+                if len(data) == 3:
+
+                    if data[0] == 's':
+                        x, y = float(data[1]), float(data[2])
+                        new_map.startPoint = QPoint(x, y)
+
+                    if data[0] == 'f':
+                        x, y = float(data[1]), float(data[2])
+                        new_map.finishPoint = QPoint(x, y)
+
+                    if data[0] == 'p':
+                        x, y = float(data[1]), float(data[2])
+                        vec = np.array([[x], [y]])
+                        new_map.polygone = np.hstack((new_map.polygone, vec))
 
 
-        return pickle.load(open('maps/'+self.map_name, 'rb'))
+        return new_map
 
 
 if __name__ == '__main__':
@@ -480,6 +500,6 @@ if __name__ == '__main__':
     if not app:
         app = QApplication(sys.argv)
 
-    fen = RandomPB()
+    fen = PathPB('ac.map')
 
     sys.exit(app.exec())

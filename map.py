@@ -8,7 +8,8 @@ class Map:
     def __init__(self, size=(700, 700), level=10):
         self.size = size
         self.Qpolygone = []
-        self.polygone = self.generer(level)
+
+        self.polygone = points = np.zeros((2, 0))
 
         self.arretes = []
         self.taches = [] # [[[Ax, Ay], [Bx, By]], [...], ...]

@@ -206,7 +206,18 @@ class Editor(QMainWindow):
             self.destroy()
 
     def saveMap(self):
-        pickle.dump(self.map, open('maps/' + self.title + '.map', 'wb'))
+       # pickle.dump(self.map, open('maps/' + self.title + '.map', 'wb'))
+
+
+        with open('maps/' + self.title + '.map', 'w') as file:
+            file.write('s/{}/{}\n'.format(self.map.startPoint.x(), self.map.startPoint.y()))
+            file.write('f/{}/{}\n'.format(self.map.finishPoint.x(), self.map.finishPoint.y()))
+
+            for i in range(self.map.polygone.shape[1]):
+                file.write('p/{}/{}\n'.format(self.map.polygone[0, i], self.map.polygone[1, i]))
+
+
+
 
 
 if __name__ == '__main__':
