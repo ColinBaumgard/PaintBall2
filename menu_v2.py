@@ -73,10 +73,9 @@ class Ui_Menu(QtWidgets.QWidget):
         widget_bouton = QtWidgets.QWidget()
 
         self.jouer = QtWidgets.QPushButton('Jouer')
-        self.creer_map = QtWidgets.QPushButton('Creer une carte')
+
         layout_bouton = QtWidgets.QHBoxLayout()
         layout_bouton.addWidget(self.jouer)
-        layout_bouton.addWidget(self.creer_map)
 
         widget_bouton.setLayout(layout_bouton)
 
@@ -109,6 +108,7 @@ class Ui_Menu(QtWidgets.QWidget):
         self.stack_auto.setLayout(layout)
 
     def stack_save_ui(self, font):
+        v_layout = QtWidgets.QVBoxLayout()
         layout = QtWidgets.QHBoxLayout()
         layout.setAlignment(QtCore.Qt.AlignCenter)
 
@@ -123,11 +123,16 @@ class Ui_Menu(QtWidgets.QWidget):
         self.leftB.clicked.connect(self.switch_map_left)
         self.rightB.clicked.connect(self.switch_map_right)
 
+        self.creer_map = QtWidgets.QPushButton('Creer une carte')
+
         layout.addWidget(self.leftB)
         layout.addWidget(self.map_name)
         layout.addWidget(self.rightB)
 
-        self.stack_save.setLayout(layout)
+        v_layout.addLayout(layout)
+        v_layout.addWidget(self.creer_map)
+
+        self.stack_save.setLayout(v_layout)
 
     def switch_mode(self):
         #self.selectWidget.deleteLater()
