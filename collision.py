@@ -95,6 +95,7 @@ class Collision:
     def intersectionCercleDroite(self, C, d, r):
         '''
         Donne les points d'intersection d'une droite et d'un cercle. Retourne une liste de points
+        Le centre du cercle doit appartenir à la droite !!
         :param C: centre du cercle (x, y)
         :param d: paramètres droite (a, b)
         :param r: rayon du cercle
