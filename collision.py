@@ -151,4 +151,5 @@ if __name__ == '__main__':
     col = Collision()
     print(col.intersection((1, 0), (-1, 2)))
     print(col.estEntreAetB((2, 2), (1, 1), (-3,-3)))
-    col.intersectionCercleDroite((6,5), (0, 5), 2)
+    col.intersectionCercleDroite((6, 5), (0, 5), 2)
+
