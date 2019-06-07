@@ -1,6 +1,5 @@
 import numpy as np
 import random
-import matplotlib.pyplot as plt
 
 class Collision:
 
@@ -108,16 +107,12 @@ class Collision:
 
         X = np.roots([1, -2*x0, x0**2 - r**2/(1 + a**2)])
 
-        plt.plot([0, 10], [b, a*10 + b])
-        plt.plot(x0, y0, 'x')
 
         for x in X:
             y = a*x + b
-            plt.plot(x, y, 'o')
             points.append((x, y))
 
 
-        #plt.show()
 
         return points
 
