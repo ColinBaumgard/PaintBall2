@@ -7,7 +7,7 @@ from PyQt5.QtCore import QPoint
 class Map:
     def __init__(self, size=(700, 700), level=10):
         self.size = size
-        self.Qpolygone = []
+        #self.Qpolygone = []
 
         self.polygone = points = np.zeros((2, 0))
 

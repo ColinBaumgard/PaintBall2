@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import matplotlib.pyplot as plt
 
 class Collision:
 
@@ -82,6 +83,8 @@ class Collision:
         :return: le point de la droite le plus proche de A
         '''
 
+
+
         x1, y1 = A
         a, b = droite
         x2 = (x1 + a*y1 - a*b)/(1 + a**2)
@@ -102,11 +105,18 @@ class Collision:
         a, b = d
         points = []
 
-        X = np.roots([1, -2*x0, x0**2 - r/(1 + a**2)])
+        X = np.roots([1, -2*x0, x0**2 - r**2/(1 + a**2)])
+
+        plt.plot([0, 10], [b, a*10 + b])
+        plt.plot(x0, y0, 'x')
 
         for x in X:
             y = a*x + b
+            plt.plot(x, y, 'o')
             points.append((x, y))
+
+
+        #plt.show()
 
         return points
 
@@ -145,3 +155,4 @@ if __name__ == '__main__':
     col = Collision()
     print(col.intersection((1, 0), (-1, 2)))
     print(col.estEntreAetB((2, 2), (1, 1), (-3,-3)))
+    col.intersectionCercleDroite((6,5), (0, 5), 2)

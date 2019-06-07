@@ -36,8 +36,8 @@ class Jeu(QMainWindow):
         self.v_tir = 500
         self.lg_tir = 20
         self.r_tir_max = 1000
-        self.r_tache = 1000
-        self.v_tache = 600
+        self.r_tache = 30
+        self.v_tache = 40
         self.t_tache = 0
 
         # styles
@@ -47,11 +47,6 @@ class Jeu(QMainWindow):
         self.style_rouge = QPen(Qt.red, 4, Qt.SolidLine)
         self.style_vert = QPen(Qt.green, 2, Qt.SolidLine)
         self.style_jaune = QPen(Qt.yellow, 2, Qt.SolidLine)
-
-        # chargement images
-        self.drop = QPixmap('drop.png').scaled(100, 30, Qt.KeepAspectRatio, Qt.FastTransformation)
-        self.splash = QPixmap('splash.png')
-        #self.transform = QtGui.QTransform()
 
 
         self.deplacement = (0, (0, 0), 0) #  angle, distance target, t0 initial time
@@ -67,7 +62,7 @@ class Jeu(QMainWindow):
         # OPTION DE DEBBUG
         self.show_polygon = True
         self.show_impact = True
-        self.show_numbers = True
+        self.show_numbers = False
         self.show_taches = True
 
         # attributs debbug
